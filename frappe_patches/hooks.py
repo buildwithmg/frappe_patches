@@ -30,7 +30,7 @@ app_include_js = "/assets/frappe_patches/js/sidebar_item_filter_patch.js"
 
 # Boot Session
 # Expose patch settings to frontend via frappe.boot.patch_settings
-boot_session = "frappe_patches.boot.boot_session"
+extend_bootinfo = "frappe_patches.boot.boot_session"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/frappe_patches/css/frappe_patches.css"
