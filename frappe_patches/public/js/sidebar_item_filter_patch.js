@@ -2,86 +2,91 @@
  * Patch: Fix sidebar item filter applying operator value in route_options
  */
 
-frappe.ready(function () {
-	const patch_settings = frappe.boot && frappe.boot.patch_settings;
-	const is_enabled = patch_settings && patch_settings.enable_sidebar_filter_fix;
+frappe.provide("frappe.ui.sidebar_item");
 
-	if (!is_enabled) {
-		return;
-	}
+(function() {
+    // We patch the method on the prototype to be more robust than replacing the whole class
+    // especially in production/bundled environments like Frappe Cloud.
+    
+    if (!frappe.ui.sidebar_item.TypeLink) return;
 
-	const OriginalTypeLink = frappe.ui.sidebar_item.TypeLink;
+    const original_get_path = frappe.ui.sidebar_item.TypeLink.prototype.get_path;
 
-	frappe.ui.sidebar_item.TypeLink = class SidebarItemFilterPatched extends OriginalTypeLink {
-		get_path() {
-			let path;
+    frappe.ui.sidebar_item.TypeLink.prototype.get_path = function() {
+        const patch_settings = frappe.boot && frappe.boot.patch_settings;
+        const is_enabled = patch_settings && patch_settings.enable_sidebar_filter_fix;
 
-			if (this.item.type === "Link") {
-				if (this.item.link_type === "Report") {
-					let args = {
-						type: this.item.link_type,
-						name: this.item.link_to,
-					};
-					if (!frappe.app.sidebar.editor.edit_mode) {
-						if (this.item.report) {
-							args.is_query_report =
-								this.item.report.report_type === "Query Report" ||
-								this.item.report.report_type == "Script Report";
-							args.report_ref_doctype = this.item.report.ref_doctype;
-						} else {
-							return;
-						}
-					}
-					path = frappe.utils.generate_route(args);
+        // If explicitly disabled or settings missing, fall back to original logic
+        if (is_enabled === 0) {
+            return original_get_path.apply(this, arguments);
+        }
 
-				} else if (this.item.link_type == "Workspace") {
-					let workspaces = frappe.workspaces[frappe.router.slug(this.item.link_to)];
-					if (workspaces.public) {
-						path = "/desk/" + frappe.router.slug(this.item.link_to);
-					} else {
-						path = "/desk/private/" + frappe.router.slug(this.item.link_to);
-					}
-					if (this.item.route) {
-						path = this.item.route;
-					}
+        let path;
+        if (this.item.type === "Link") {
+            if (this.item.link_type === "Report") {
+                let args = {
+                    type: this.item.link_type,
+                    name: this.item.link_to,
+                };
+                if (!frappe.app.sidebar.editor.edit_mode) {
+                    if (this.item.report) {
+                        args.is_query_report =
+                            this.item.report.report_type === "Query Report" ||
+                            this.item.report.report_type == "Script Report";
+                        args.report_ref_doctype = this.item.report.ref_doctype;
+                    } else {
+                        return;
+                    }
+                }
+                path = frappe.utils.generate_route(args);
 
-				} else if (this.item.link_type === "URL") {
-					path = this.item.url;
+            } else if (this.item.link_type == "Workspace") {
+                let workspaces = frappe.workspaces[frappe.router.slug(this.item.link_to)];
+                if (workspaces && workspaces.public) {
+                    path = "/desk/" + frappe.router.slug(this.item.link_to);
+                } else {
+                    path = "/desk/private/" + frappe.router.slug(this.item.link_to);
+                }
+                if (this.item.route) {
+                    path = this.item.route;
+                }
 
-				} else if (this.item.link_type == "Page" && this.item.route_options) {
-					path = frappe.utils.generate_route({
-						type: this.item.link_type,
-						name: this.item.link_to,
-						route_options: JSON.parse(this.item.route_options),
-					});
+            } else if (this.item.link_type === "URL") {
+                path = this.item.url;
 
-				} else {
-					let args = {
-						type: this.item.link_type,
-						name: this.item.link_to,
-						tab: this.item.tab,
-					};
+            } else if (this.item.link_type == "Page" && this.item.route_options) {
+                path = frappe.utils.generate_route({
+                    type: this.item.link_type,
+                    name: this.item.link_to,
+                    route_options: JSON.parse(this.item.route_options),
+                });
 
-					if (this.item.filters) {
-						let raw_filters = JSON.parse(this.item.filters);
+            } else {
+                let args = {
+                    type: this.item.link_type,
+                    name: this.item.link_to,
+                    tab: this.item.tab,
+                };
 
-						if (this.item.link_type == "DocType" && raw_filters && raw_filters.length) {
-							args.doc_view = "List";
+                if (this.item.filters) {
+                    let raw_filters = JSON.parse(this.item.filters);
 
-							let route_options = {};
-							raw_filters.forEach((filter) => {
-								if (Array.isArray(filter) && filter.length >= 4) {
-									route_options[filter[1]] = filter[3];
-								}
-							});
-							args.route_options = route_options;
-						}
-					}
-					path = frappe.utils.generate_route(args);
-				}
-			}
+                    if (this.item.link_type == "DocType" && raw_filters && raw_filters.length) {
+                        args.doc_view = "List";
 
-			return path;
-		}
-	};
-});
+                        let route_options = {};
+                        raw_filters.forEach((filter) => {
+                            if (Array.isArray(filter) && filter.length >= 4) {
+                                route_options[filter[1]] = filter[3];
+                            }
+                        });
+                        args.route_options = route_options;
+                    }
+                }
+                path = frappe.utils.generate_route(args);
+            }
+        }
+
+        return path || original_get_path.apply(this, arguments);
+    };
+})();
