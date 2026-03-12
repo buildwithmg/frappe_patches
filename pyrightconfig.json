@@ -1,0 +1,9 @@
+{
+    "venvPath": "/home/kadmin/frappe-bench/frappe-bench",
+    "venv": "env",
+    "extraPaths": [
+        "../frappe",
+        "../../apps/frappe"
+    ],
+    "reportMissingImports": "none"
+}

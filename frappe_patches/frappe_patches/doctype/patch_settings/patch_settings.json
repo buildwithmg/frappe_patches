@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "creation": "2026-03-12 10:57:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sidebar_fixes_section",
+  "enable_sidebar_filter_fix",
+  "sidebar_filter_fix_description"
+ ],
+ "fields": [
+  {
+   "fieldname": "sidebar_fixes_section",
+   "fieldtype": "Section Break",
+   "label": "Sidebar Fixes"
+  },
+  {
+   "default": "1",
+   "description": "Fixes the bug where sidebar item filters include the operator in the URL value (e.g. <code>workflow_state==,Awaiting MD Approval</code> instead of <code>workflow_state=Awaiting MD Approval</code>). Disable this if the official Frappe release has resolved the issue.",
+   "fieldname": "enable_sidebar_filter_fix",
+   "fieldtype": "Check",
+   "label": "Enable Sidebar Item Filter Fix"
+  },
+  {
+   "fieldname": "sidebar_filter_fix_description",
+   "fieldtype": "HTML",
+   "options": "<div class=\"alert alert-info\">\n\t<strong>About this fix:</strong> Affects <code>frappe/public/js/frappe/ui/sidebar/sidebar_item.js</code> — when a sidebar link has filters (e.g. <em>Workflow State = Awaiting MD Approval</em>), the standard code incorrectly passes the operator along with the value into the URL query string. This patch corrects that behaviour.\n\t<br><br>\n\t<strong>To verify the official fix:</strong> Disable the toggle above and test your sidebar links. If filters still work correctly, the upstream fix is in place and this patch is no longer needed.\n</div>"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-03-12 10:57:00.000000",
+ "modified_by": "Administrator",
+ "module": "Frappe Patches",
+ "name": "Patch Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
